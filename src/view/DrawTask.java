@@ -3,40 +3,40 @@ package view;
 import javafx.concurrent.Task;
 import model.JuliaSet;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-class DrawTask extends Task<Map<Pixel, Double>> {
+class DrawTask extends Task<Map<Pixel, Integer>> {
     private final JuliaSet set;
     private final int startX;
-    private final int endX;
     private final int startY;
-    private final int endY;
-    private final int step;
+    private final int size;
+    List<Pixel> pixels = new ArrayList<>();
 
-    public DrawTask(JuliaSet set, int startX, int startY, int endX, int endY, int step) {
+    public DrawTask(JuliaSet set, int startX, int startY, int size) {
         this.set = set;
         this.startX = startX;
-        this.endX = endX;
         this.startY = startY;
-        this.endY = endY;
-        this.step = step;
+        this.size = size;
+        IntStream.range(startX, startX + size)
+                .forEach(x -> IntStream.range(startY, startY + size)
+                        .forEach(y -> pixels.add(new Pixel(x, y))));
     }
 
-    @Override
-    protected Map<Pixel, Double> call() {
+    private Function<Pixel,Integer> evaluator(int iter) {
+        return pix -> set.getValue(set.pixelToLocation(pix), 1 << iter);
+    }
+
+    protected Map<Pixel, Integer> call() {
         int iter = 0;
-        while (!isCancelled() && iter < 100) {
-            Map<Pixel, Double> results = new HashMap<>();
-            for (int x = startX; x < endX; x += step) {
-                for (int y = startY; y < endY; y += step) {
-                    Pixel pixel = new Pixel(x, y);
-                    double value = set.getValue(set.pixelToLocation(pixel));
-                    results.put(pixel, value);
-                }
-            }
-            updateValue(results);
+        while (!isCancelled() && iter < 8) {
+            Function<Pixel, Integer> evalutator = evaluator(iter);
+            Map<Pixel, Integer> results = pixels.stream().parallel()
+                    .collect(Collectors.toMap(pix -> pix, evalutator));
+            if (!isCancelled())
+                updateValue(results);
             iter++;
         }
         return Collections.emptyMap();

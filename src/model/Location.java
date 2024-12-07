@@ -1,17 +1,11 @@
 package model;
 
-public record Location(long x, long y) {
-    private static final long RESOLUTION = Long.MAX_VALUE / 10;
-
-    public Location(double x, double y) {
-        this((long) (RESOLUTION * x), (long) (RESOLUTION * y));
+public record Location(double x, double y) {
+    public double sqr_dist() {
+        return x * x + y * y;
     }
 
-    public double dx() {
-        return (double) x / RESOLUTION;
-    }
-
-    public double dy() {
-        return (double) y / RESOLUTION;
+    public double angle() {
+        return Math.atan2(y, x);
     }
 }

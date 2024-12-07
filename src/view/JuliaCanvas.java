@@ -2,13 +2,16 @@ package view;
 
 import javafx.scene.canvas.Canvas;
 import model.JuliaSet;
+import model.JuliaValue;
 import model.Location;
+import model.Movement;
 
 public class JuliaCanvas extends Canvas {
-    private final Palette palette = new Palette(1024);
+    private final Palette palette = new Palette(JuliaValue.MAX_ITER);
     private JuliaSet set = new JuliaSet(2.0, .35, .35,0.0045);
     private Pixel origin = new Pixel(0, 0);
-    DrawService service = null;
+    private DrawService service = null;
+    private Movement lastMovement = null;
 
     public JuliaCanvas() {
         super(800, 800);
@@ -33,14 +36,15 @@ public class JuliaCanvas extends Canvas {
         draw();
     }
 
-    public void updatePow(double deltaPow) {
-        set = set.updatePower(deltaPow);
+    public void update(Movement movement) {
+        lastMovement = movement;
+        set = set.update(movement);
         draw();
     }
 
-    public void updateC(double deltaX, double deltaY) {
-        set = set.updateC(deltaX, deltaY);
-        draw();
+    public void repeatLastUpdate() {
+        if (lastMovement != null)
+            update(lastMovement);
     }
 
     public void moveTo(double x, double y) {
@@ -54,14 +58,18 @@ public class JuliaCanvas extends Canvas {
         if (getWidth() > 0 && getHeight() > 0) {
             if (service != null)
                 service.cancel();
-            service = new DrawService(this, origin, 3, palette);
+            service = new DrawService(this, origin, 512, palette);
             service.start();
         }
+    }
+
+    public void cancelDrawService() {
+        if (service != null)
+            service.cancel();
     }
 
     @Override
     public boolean isResizable() {
         return true;
     }
-
 }

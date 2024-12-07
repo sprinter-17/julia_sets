@@ -1,5 +1,6 @@
 package view;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.PixelWriter;
@@ -12,7 +13,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 class DrawService {
-    private final List<Task<Map<Pixel, Double>>> drawTasks = new ArrayList<>();
+    private final List<Task<Map<Pixel, Integer>>> drawTasks = new ArrayList<>();
     private final JuliaCanvas canvas;
     private final Pixel origin;
     private final Palette palette;
@@ -32,23 +33,24 @@ class DrawService {
         this.halfWidth = (int) canvas.getWidth() / 2;
         this.halfHeight = (int) canvas.getHeight() / 2;
         this.palette = palette;
-        for (int x = 0; x < chunkSize; x += 1) {
-            for (int y = 0; y < chunkSize; y += 1) {
-                DrawTask task = new DrawTask(canvas.getSet(), x - halfWidth - origin.x(), y - halfHeight - origin.y(), x + halfWidth - origin.x(), y + halfHeight - origin.y(), chunkSize);
+        for (int x = -halfWidth; x < halfWidth; x += chunkSize) {
+            for (int y = -halfHeight; y < halfHeight; y += chunkSize) {
+                DrawTask task = new DrawTask(canvas.getSet(), x - origin.x(), y - origin.y(), chunkSize);
                 task.valueProperty().addListener((_, _, vals) -> draw(vals));
                 drawTasks.add(task);
             }
         }
-        Collections.shuffle(drawTasks);
     }
 
-    private void draw(Map<Pixel,Double> values) {
-        GraphicsContext gr = canvas.getGraphicsContext2D();
-        PixelWriter writer = gr.getPixelWriter();
-        values.forEach((pix, val) -> drawPixel(writer, pix, val));
+    private void draw(Map<Pixel, Integer> values) {
+        Platform.runLater(() -> {
+            GraphicsContext gr = canvas.getGraphicsContext2D();
+            PixelWriter writer = gr.getPixelWriter();
+            values.forEach((pix, val) -> drawPixel(writer, pix, val));
+        });
     }
 
-    private void drawPixel(PixelWriter writer, Pixel pixel, double value) {
+    private void drawPixel(PixelWriter writer, Pixel pixel, int value) {
         writer.setColor(pixel.x() + halfWidth + origin.x(), pixel.y() + halfHeight + origin.y(), palette.getColor(value));
     }
 

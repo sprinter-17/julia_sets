@@ -1,30 +1,28 @@
 package model;
 
-class JuliaValue {
-    private static final int MAX_ITER = 100000;
+public class JuliaValue {
+    public static final int MAX_ITER = 1000000;
     private static final double ESCAPE = 1.5 * 1.5;
-    private double zx;
-    private double zy;
+    private Location z;
     private boolean escaped;
     private int iter;
 
     public JuliaValue(Location location) {
-        this.zx = location.dx();
-        this.zy = location.dy();
+        this.z = location;
         this.escaped = false;
         this.iter = 0;
     }
 
-    public double update(double power, double cx, double cy) {
-        int end = Math.min(MAX_ITER, iter + 50);
-        while (!escaped && iter < end) {
-            double sqr = Math.pow(zx * zx + zy * zy, power / 2);
-            double angle = Math.atan2(zy, zx);
-            zx = sqr * Math.cos(power * angle) + cx;
-            zy = sqr * Math.sin(power * angle) + cy;
-            escaped = zx * zx + zy * zy > ESCAPE;
-            iter++;
+    public int update(double power, double cx, double cy, int iterCount) {
+        int end = Math.min(MAX_ITER, iter + iterCount);
+        while (!escaped && iter++ < end) {
+            double sqr_dist = Math.pow(z.sqr_dist(), power / 2);
+            double pow_angle = z.angle() * power;
+            z = new Location(
+                    sqr_dist * Math.cos(pow_angle) + cx,
+                    sqr_dist * Math.sin(pow_angle) + cy);
+            escaped = z.sqr_dist() > ESCAPE;
         }
-        return escaped ? (double)iter / MAX_ITER : 1.0;
+        return escaped ? iter : MAX_ITER;
     }
 }

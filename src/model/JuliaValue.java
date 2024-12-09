@@ -15,12 +15,11 @@ public class JuliaValue {
         this.iter = 0;
     }
 
-    public int update(double power, double cx, double cy, int iterCount) {
+    public int update(double cx, double cy, int iterCount) {
         int end = Math.min(MAX_ITER, iter + iterCount);
         while (!escaped && iter++ < end) {
-//            double sqr_dist = Math.pow(z.sqr_dist(), power / 2);
             double sqr_dist = zx * zx + zy * zy;
-            double pow_angle = Math.atan2(zy, zx) * power;
+            double pow_angle = 2 * Math.atan2(zy, zx);
             zx = sqr_dist * Math.cos(pow_angle) + cx;
             zy = sqr_dist * Math.sin(pow_angle) + cy;
             escaped = sqr_dist > ESCAPE;

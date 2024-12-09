@@ -2,7 +2,7 @@ package model;
 
 public record Movement(Param param, Dir dir) {
     public enum Param {
-        CX, CY, POWER
+        CX, CY
     }
 
     public enum Dir {

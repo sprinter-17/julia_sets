@@ -2,13 +2,12 @@ package view;
 
 import javafx.scene.canvas.Canvas;
 import model.JuliaSet;
-import model.JuliaValue;
 import model.Location;
 import model.Movement;
 
 public class JuliaCanvas extends Canvas {
-    private final Palette palette = new Palette(JuliaValue.MAX_ITER);
-    private JuliaSet set = new JuliaSet(2.0, .35, .35,0.0045);
+    private JuliaSet set = new JuliaSet(.35, .35,0.0045);
+    private Palette palette;
     private int originX = 0;
     private int originY = 0;
     private DrawService service = null;
@@ -26,14 +25,20 @@ public class JuliaCanvas extends Canvas {
         return (int)(pixel >> 32) - 10000;
     }
 
-    public JuliaCanvas() {
+    public void setPalette(Palette palette) {
+        this.palette = palette;
+        draw();
+    }
+
+    public JuliaCanvas(Palette palette) {
         super(800, 800);
+        this.palette = palette;
         heightProperty().addListener(_ -> draw());
         widthProperty().addListener(_ -> draw());
     }
 
     public void reset() {
-        set = new JuliaSet(2.0, .35, .35,0.0045);
+        set = new JuliaSet(.35, .35,0.0045);
         originX = 0;
         originY = 0;
         draw();

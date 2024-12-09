@@ -14,10 +14,20 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import model.Movement;
+import java.util.List;
 
 public class Main extends Application {
-
-    private final JuliaCanvas canvas = new JuliaCanvas();
+    private final List<ColourBand> bands = List.of(
+            new ColourBand(Color.GOLD, 40),
+            new ColourBand(Color.SALMON, 140),
+            new ColourBand(Color.DARKGREEN, 200),
+            new ColourBand(Color.GOLDENROD, 450),
+            new ColourBand(Color.ALICEBLUE, 600),
+            new ColourBand(Color.OLIVEDRAB, 6000)
+    );
+    private Palette palette = new Palette(bands);
+    private final JuliaCanvas canvas = new JuliaCanvas(palette);
+    private final PaletteEditor paletteEditor = new PaletteEditor(bands, this::setPalette);
     Timeline timer = new Timeline(new KeyFrame(Duration.millis(1000), _ -> canvas.repeatLastUpdate()));
 
     public static void main(String... args) {
@@ -29,10 +39,6 @@ public class Main extends Application {
         exitButton.setOnAction(_ -> exit());
         Button resetButton = new Button("Reset");
         resetButton.setOnAction(_ -> canvas.reset());
-        Button powPlusButton = new Button("pow+");
-        powPlusButton.setOnAction(_-> canvas.update(new Movement(Movement.Param.POWER, Movement.Dir.POSITIVE)));
-        Button powMinusButton = new Button("pow-");
-        powMinusButton.setOnAction(_-> canvas.update(new Movement(Movement.Param.POWER, Movement.Dir.NEGATIVE)));
         Button zoomInButton = new Button("+");
         zoomInButton.setOnAction(_ -> canvas.zoom(-.5));
         Button zoomOutButton = new Button("-");
@@ -47,9 +53,23 @@ public class Main extends Application {
         cyMinusButton.setOnAction(_ -> canvas.update(new Movement(Movement.Param.CY, Movement.Dir.NEGATIVE)));
         Button playButton = new Button("Play");
         playButton.setOnAction(this::togglePlay);
-        HBox tools = new HBox(5, resetButton, zoomInButton, zoomOutButton, powPlusButton, powMinusButton, cxPlusButton, cxMinusButton, cyPlusButton, cyMinusButton, playButton, exitButton);
+        Button editPaletteButton = new Button("Palette");
+        editPaletteButton.setOnAction(_ -> editPalettte());
+        HBox tools = new HBox(5, resetButton, zoomInButton, zoomOutButton,
+                cxPlusButton, cxMinusButton, cyPlusButton, cyMinusButton,
+                editPaletteButton, playButton,
+                exitButton);
         tools.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         return tools;
+    }
+
+    private void editPalettte() {
+        paletteEditor.show();
+    }
+
+    private void setPalette(Palette palette) {
+        this.palette = palette;
+        canvas.setPalette(palette);
     }
 
     private void exit() {
@@ -58,14 +78,14 @@ public class Main extends Application {
     }
 
     private void togglePlay(ActionEvent ev) {
-        Button button = (Button)ev.getSource();
-        System.out.println(button.toString());
-        if (timer.getStatus() == Animation.Status.RUNNING) {
-            button.setText("Play");
-            timer.stop();
-        } else {
-            button.setText("Stop");
-            timer.play();
+        if (ev.getSource() instanceof Button button) {
+            if (timer.getStatus() == Animation.Status.RUNNING) {
+                button.setText("Play");
+                timer.stop();
+            } else {
+                button.setText("Stop");
+                timer.play();
+            }
         }
     }
 

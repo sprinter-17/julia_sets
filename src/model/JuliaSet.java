@@ -4,38 +4,33 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class JuliaSet {
-    private final double power;
     private final double cx;
     private final double cy;
     private final double scale;
     private final ConcurrentMap<Location, JuliaValue> cache;
 
-    public JuliaSet(double power, double cx, double cy, double scale) {
-        this.power = power;
+    public JuliaSet(double cx, double cy, double scale) {
         this.cx = cx;
         this.cy = cy;
         this.scale = scale;
         this.cache = new ConcurrentHashMap<>();
     }
 
-    private JuliaSet(double power, double cx, double cy, double scale, ConcurrentMap<Location, JuliaValue> cache) {
-        this.power = power;
+    private JuliaSet(double cx, double cy, double scale, ConcurrentMap<Location, JuliaValue> cache) {
         this.cx = cx;
         this.cy = cy;
         this.scale = scale;
         this.cache = cache;
-        System.out.println(scale);
     }
 
     public JuliaSet zoom(double deltaScale) {
-        return new JuliaSet(power, cx, cy, scale * (1 + deltaScale), cache);
+        return new JuliaSet(cx, cy, scale * (1 + deltaScale), cache);
     }
 
     public JuliaSet update(Movement movement) {
         return switch (movement.param()) {
-            case CX -> new JuliaSet(power, movement.dir().add(cx), cy, scale);
-            case CY -> new JuliaSet(power, cx, movement.dir().add(cy), scale);
-            case POWER -> new JuliaSet(movement.dir().add(power), cx, cy, scale);
+            case CX -> new JuliaSet(movement.dir().add(cx), cy, scale);
+            case CY -> new JuliaSet(cx, movement.dir().add(cy), scale);
         };
     }
 
@@ -53,7 +48,7 @@ public class JuliaSet {
 
     public int getValue(Location location, int iterCount) {
         JuliaValue value = cache.computeIfAbsent(location.normalise(), _ -> new JuliaValue(location));
-        return value.update(power, cx, cy, iterCount);
+        return value.update(cx, cy, iterCount);
     }
 
 }

@@ -2,42 +2,34 @@ package view;
 
 import javafx.scene.paint.Color;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.List;
+
+import static model.JuliaValue.MAX_ITER;
 
 public class Palette {
     private final int size;
     private final Color[] colours;
 
-    private record Band(Color colour, int width) {
-    }
-
-    public Palette(int size) {
-        this.size = size;
+    public Palette(List<ColourBand> bands) {
+        this.size = MAX_ITER;
         this.colours = new Color[size];
-
-        Deque<Band> bands = new ArrayDeque<>();
-        bands.add(new Band(Color.GOLD, 40));
-        bands.add(new Band(Color.SALMON, 140));
-        bands.add(new Band(Color.DARKGREEN, 280));
-        bands.add(new Band(Color.GOLDENROD, 450));
-        bands.add(new Band(Color.ALICEBLUE, 600));
-        bands.add(new Band(Color.OLIVEDRAB, 6000));
 
         Color colour = Color.WHITE;
         double distance = 0.0;
 
+        int currentBand = 0;
         for (int value = 0; value < size; value ++) {
             if (distance > 1.0) {
-                colour = bands.removeFirst().colour();
+                colour = bands.get(currentBand).getColour();
+                currentBand++;
                 distance = 0.0;
             }
             int index = getIndex(value);
-            if (bands.isEmpty()) {
+            if (currentBand == bands.size()) {
                 colours[index] = colour.interpolate(Color.BLACK, 1.0 * value / size);
             } else {
-                colours[index] = colour.interpolate(bands.getFirst().colour(), distance);
-                distance += 1.0 / bands.getFirst().width();
+                colours[index] = colour.interpolate(bands.get(currentBand).getColour(), distance);
+                distance += 1.0 / bands.get(currentBand).getWidth();
             }
         }
     }

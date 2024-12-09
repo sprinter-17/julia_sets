@@ -6,19 +6,23 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.PixelWriter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import static view.JuliaCanvas.toScreenX;
+import static view.JuliaCanvas.toScreenY;
+
 class DrawService {
-    private final List<Task<Map<Pixel, Integer>>> drawTasks = new ArrayList<>();
+    private final List<Task<Map<Long, Integer>>> drawTasks = new ArrayList<>();
     private final JuliaCanvas canvas;
-    private final Pixel origin;
+    private final int originX;
+    private final int originY;
     private final Palette palette;
     private final int halfWidth;
     private final int halfHeight;
+    private boolean cancelled = false;
 
 
     private final Executor exec = Executors.newCachedThreadPool(runnable -> {
@@ -27,22 +31,25 @@ class DrawService {
         return t;
     });
 
-    public DrawService(JuliaCanvas canvas, Pixel origin, int chunkSize, Palette palette) {
+    public DrawService(JuliaCanvas canvas, int originX, int originY, int chunkSize, Palette palette) {
         this.canvas = canvas;
-        this.origin = origin;
+        this.originX = originX;
+        this.originY = originY;
         this.halfWidth = (int) canvas.getWidth() / 2;
         this.halfHeight = (int) canvas.getHeight() / 2;
         this.palette = palette;
         for (int x = -halfWidth; x < halfWidth; x += chunkSize) {
             for (int y = -halfHeight; y < halfHeight; y += chunkSize) {
-                DrawTask task = new DrawTask(canvas.getSet(), x - origin.x(), y - origin.y(), chunkSize);
+                DrawTask task = new DrawTask(canvas.getSet(), x - originX, y - originY, chunkSize);
                 task.valueProperty().addListener((_, _, vals) -> draw(vals));
                 drawTasks.add(task);
             }
         }
     }
 
-    private void draw(Map<Pixel, Integer> values) {
+    private void draw(Map<Long, Integer> values) {
+        if (cancelled)
+            return;
         Platform.runLater(() -> {
             GraphicsContext gr = canvas.getGraphicsContext2D();
             PixelWriter writer = gr.getPixelWriter();
@@ -50,8 +57,8 @@ class DrawService {
         });
     }
 
-    private void drawPixel(PixelWriter writer, Pixel pixel, int value) {
-        writer.setColor(pixel.x() + halfWidth + origin.x(), pixel.y() + halfHeight + origin.y(), palette.getColor(value));
+    private void drawPixel(PixelWriter writer, long pixel, int value) {
+        writer.setColor(toScreenX(pixel) + halfWidth + originX, toScreenY(pixel) + halfHeight +originY, palette.getColor(value));
     }
 
     public void start() {
@@ -59,6 +66,7 @@ class DrawService {
     }
 
     public void cancel() {
+        cancelled = true;
         drawTasks.forEach(Task::cancel);
     }
 }

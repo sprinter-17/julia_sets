@@ -17,9 +17,9 @@ public class Palette {
         this.colours = new Color[size];
 
         Deque<Band> bands = new ArrayDeque<>();
-        bands.add(new Band(Color.GOLD, 20));
-        bands.add(new Band(Color.SALMON, 40));
-        bands.add(new Band(Color.GREENYELLOW, 280));
+        bands.add(new Band(Color.GOLD, 40));
+        bands.add(new Band(Color.SALMON, 140));
+        bands.add(new Band(Color.DARKGREEN, 280));
         bands.add(new Band(Color.GOLDENROD, 450));
         bands.add(new Band(Color.ALICEBLUE, 600));
         bands.add(new Band(Color.OLIVEDRAB, 6000));

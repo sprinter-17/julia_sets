@@ -1,11 +1,7 @@
 package model;
 
-import view.Pixel;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static model.Movement.Param.*;
 
 public class JuliaSet {
     private final double power;
@@ -13,7 +9,6 @@ public class JuliaSet {
     private final double cy;
     private final double scale;
     private final ConcurrentMap<Location, JuliaValue> cache;
-    private Movement lastMovement = null;
 
     public JuliaSet(double power, double cx, double cy, double scale) {
         this.power = power;
@@ -37,24 +32,27 @@ public class JuliaSet {
     }
 
     public JuliaSet update(Movement movement) {
-        lastMovement = movement;
-        return switch (lastMovement.param()) {
-            case CX -> new JuliaSet(power, lastMovement.dir().add(cx), cy, scale);
-            case CY -> new JuliaSet(power, cx, lastMovement.dir().add(cy), scale);
-            case POWER -> new JuliaSet(lastMovement.dir().add(power), cx, cy, scale);
+        return switch (movement.param()) {
+            case CX -> new JuliaSet(power, movement.dir().add(cx), cy, scale);
+            case CY -> new JuliaSet(power, cx, movement.dir().add(cy), scale);
+            case POWER -> new JuliaSet(movement.dir().add(power), cx, cy, scale);
         };
     }
 
-    public Location pixelToLocation(Pixel pixel) {
-        return new Location(pixel.x() * scale, pixel.y() * scale);
+    public Location pixelToLocation(int x, int y) {
+        return new Location(x * scale, y * scale);
     }
 
-    public Pixel locationToPixel(Location location) {
-        return new Pixel((int)(location.x() / scale), (int)(location.y() / scale));
+    public int pixelX(Location location) {
+        return (int)(location.x() / scale);
+    }
+
+    public int pixelY(Location location) {
+        return (int)(location.y() / scale);
     }
 
     public int getValue(Location location, int iterCount) {
-        JuliaValue value = cache.computeIfAbsent(location, _ -> new JuliaValue(location));
+        JuliaValue value = cache.computeIfAbsent(location.normalise(), _ -> new JuliaValue(location));
         return value.update(power, cx, cy, iterCount);
     }
 

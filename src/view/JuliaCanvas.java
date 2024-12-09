@@ -9,9 +9,22 @@ import model.Movement;
 public class JuliaCanvas extends Canvas {
     private final Palette palette = new Palette(JuliaValue.MAX_ITER);
     private JuliaSet set = new JuliaSet(2.0, .35, .35,0.0045);
-    private Pixel origin = new Pixel(0, 0);
+    private int originX = 0;
+    private int originY = 0;
     private DrawService service = null;
     private Movement lastMovement = null;
+
+    public static long toPixel(int x, int y) {
+        return (long)(y + 10000) << 32 | (x + 10000);
+    }
+
+    public static int toScreenX(long pixel) {
+        return (int)pixel - 10000;
+    }
+
+    public static int toScreenY(long pixel) {
+        return (int)(pixel >> 32) - 10000;
+    }
 
     public JuliaCanvas() {
         super(800, 800);
@@ -21,7 +34,8 @@ public class JuliaCanvas extends Canvas {
 
     public void reset() {
         set = new JuliaSet(2.0, .35, .35,0.0045);
-        origin = Pixel.ZERO;
+        originX = 0;
+        originY = 0;
         draw();
     }
 
@@ -30,9 +44,10 @@ public class JuliaCanvas extends Canvas {
     }
 
     public void zoom(double deltaScale) {
-        Location focus = set.pixelToLocation(origin);
+        Location focus = set.pixelToLocation(originX, originY);
         set = set.zoom(deltaScale);
-        origin = set.locationToPixel(focus);
+        originX = set.pixelX(focus);
+        originY = set.pixelY(focus);
         draw();
     }
 
@@ -48,7 +63,8 @@ public class JuliaCanvas extends Canvas {
     }
 
     public void moveTo(double x, double y) {
-        origin = new Pixel(origin.x() + (int)(getWidth() / 2 - x), origin.y() + (int)(getHeight() / 2 - y));
+        originX += (int)(getWidth() / 2 - x);
+        originY += (int)(getHeight() / 2 - y);
         draw();
     }
 
@@ -58,7 +74,7 @@ public class JuliaCanvas extends Canvas {
         if (getWidth() > 0 && getHeight() > 0) {
             if (service != null)
                 service.cancel();
-            service = new DrawService(this, origin, 512, palette);
+            service = new DrawService(this, originX, originY, 64, palette);
             service.start();
         }
     }

@@ -34,13 +34,17 @@ class DrawTask extends Task<Image> {
 
     protected Image call() {
         int iter = 0;
-        while (!isCancelled() && iter < 12) {
+        boolean allEscaped = false;
+        while (!allEscaped && !isCancelled() && iter < 12) {
             WritableImage image = new WritableImage(size, size);
             PixelWriter writer = image.getPixelWriter();
+            allEscaped = true;
             for (long pixel: pixels) {
                 int x = toScreenX(pixel);
                 int y = toScreenY(pixel);
-                Color colour = palette.getColor(set.getValue(set.pixelToLocation(x, y), 1 << iter));
+                int value = set.getValue(set.pixelToLocation(x, y), 1 << iter);
+                allEscaped = allEscaped && value < MAX_ITER;
+                Color colour = palette.getColor(value);
                 writer.setColor(x - startX, y - startY, colour);
             }
             if (!isCancelled())

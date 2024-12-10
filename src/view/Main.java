@@ -6,8 +6,10 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -34,7 +36,7 @@ public class Main extends Application {
         launch(args);
     }
 
-    private HBox tools() {
+    private Parent tools() {
         Button exitButton = new Button("Exit");
         exitButton.setOnAction(_ -> exit());
         Button resetButton = new Button("Reset");
@@ -55,12 +57,14 @@ public class Main extends Application {
         playButton.setOnAction(this::togglePlay);
         Button editPaletteButton = new Button("Palette");
         editPaletteButton.setOnAction(_ -> editPalettte());
-        HBox tools = new HBox(5, resetButton, zoomInButton, zoomOutButton,
+        HBox buttons = new HBox(5, resetButton, zoomInButton, zoomOutButton,
                 cxPlusButton, cxMinusButton, cyPlusButton, cyMinusButton,
                 editPaletteButton, playButton,
                 exitButton);
-        tools.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-        return tools;
+        buttons.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+        Slider deltaSlider = new Slider(0.0001, 1.0, canvas.getSet().getDelta());
+        deltaSlider.valueProperty().addListener((_, _, val) -> canvas.getSet().setDelta(val.doubleValue()));
+        return new VBox(5, buttons, deltaSlider);
     }
 
     private void editPalettte() {

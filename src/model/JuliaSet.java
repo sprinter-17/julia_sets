@@ -8,29 +8,36 @@ public class JuliaSet {
     private final double cy;
     private final double scale;
     private final ConcurrentMap<Location, JuliaValue> cache;
+    private double delta;
 
-    public JuliaSet(double cx, double cy, double scale) {
-        this.cx = cx;
-        this.cy = cy;
-        this.scale = scale;
-        this.cache = new ConcurrentHashMap<>();
+    public JuliaSet(double cx, double cy, double scale, double delta) {
+        this(cx, cy, scale, delta, new ConcurrentHashMap<>());
     }
 
-    private JuliaSet(double cx, double cy, double scale, ConcurrentMap<Location, JuliaValue> cache) {
+    private JuliaSet(double cx, double cy, double scale, double delta, ConcurrentMap<Location, JuliaValue> cache) {
         this.cx = cx;
         this.cy = cy;
         this.scale = scale;
         this.cache = cache;
+        this.delta = delta;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 
     public JuliaSet zoom(double deltaScale) {
-        return new JuliaSet(cx, cy, scale * (1 + deltaScale), cache);
+        return new JuliaSet(cx, cy, scale * (1 + deltaScale), delta, cache);
     }
 
     public JuliaSet update(Movement movement) {
         return switch (movement.param()) {
-            case CX -> new JuliaSet(movement.dir().add(cx), cy, scale);
-            case CY -> new JuliaSet(cx, movement.dir().add(cy), scale);
+            case CX -> new JuliaSet(movement.dir().apply(delta) + cx, cy, scale, delta);
+            case CY -> new JuliaSet(cx, movement.dir().apply(delta) + cy, scale, delta);
         };
     }
 

@@ -6,7 +6,7 @@ import model.Location;
 import model.Movement;
 
 public class JuliaCanvas extends Canvas {
-    private JuliaSet set = new JuliaSet(.35, .35,0.0045);
+    private JuliaSet set = new JuliaSet(.35, .35,0.0045, 0.01);
     private Palette palette;
     private int originX = 0;
     private int originY = 0;
@@ -38,7 +38,7 @@ public class JuliaCanvas extends Canvas {
     }
 
     public void reset() {
-        set = new JuliaSet(.35, .35,0.0045);
+        set = new JuliaSet(.35, .35,0.0045, set.getDelta());
         originX = 0;
         originY = 0;
         draw();

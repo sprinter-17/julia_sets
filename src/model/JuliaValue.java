@@ -2,7 +2,7 @@ package model;
 
 public class JuliaValue {
     public static final int MAX_ITER = 1000000;
-    private static final double ESCAPE = 1.5 * 1.5;
+    private static final double ESCAPE = 2.5 * 2.5;
     private double zx;
     private double zy;
     private boolean escaped;

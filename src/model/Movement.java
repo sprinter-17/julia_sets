@@ -1,20 +1,23 @@
 package model;
 
+import java.util.function.UnaryOperator;
+
 public record Movement(Param param, Dir dir) {
     public enum Param {
         CX, CY
     }
 
-    public enum Dir {
-        POSITIVE(+0.01), NEGATIVE(-0.01);
-        private final double delta;
+    public enum Dir implements UnaryOperator<Double> {
+        POSITIVE(d -> d), NEGATIVE(d -> -d);
+        private final UnaryOperator<Double> setDir;
 
-        Dir(double delta) {
-            this.delta = delta;
+        Dir(UnaryOperator<Double> setDir) {
+            this.setDir = setDir;
         }
 
-        public double add(double value) {
-            return value + delta;
+        @Override
+        public Double apply(Double val) {
+            return setDir.apply(val);
         }
     }
 }
